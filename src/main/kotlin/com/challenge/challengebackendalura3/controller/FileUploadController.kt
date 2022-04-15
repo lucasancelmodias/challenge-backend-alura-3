@@ -1,53 +1,23 @@
 package com.challenge.challengebackendalura3.controller
 
 
-import com.challenge.challengebackendalura3.model.Transaction
-import org.springframework.http.HttpStatus
+
+import com.challenge.challengebackendalura3.model.TransactionLog
+import com.challenge.challengebackendalura3.repository.TransactionLogRepository
+import com.challenge.challengebackendalura3.service.TransactionService
+import org.springframework.data.domain.Sort
+
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.nio.charset.StandardCharsets
-
-import java.time.LocalDateTime
 
 
-
-@RestController
-class FileUploadController {
-
+@RestController()
+class FileUploadController(private val transactionService: TransactionService, private val transactionLogRepository: TransactionLogRepository) {
+    @CrossOrigin(origins = ["http://localhost:8000"])
     @PostMapping("/fileupload")
-    fun fileUpload(@RequestParam("file") file: MultipartFile): ResponseEntity<String>{
+    fun fileUpload(@RequestParam("file") file: MultipartFile): ResponseEntity<*> = transactionService.validate(file)
 
-        if(file.isEmpty){
-            return ResponseEntity("O arquivo enviado está vazio.", HttpStatus.BAD_REQUEST)
-        }
-        val lines = String(file.bytes, StandardCharsets.UTF_8).split("\n")
-
-        val transactions = mutableListOf<Transaction>()
-        for(line in lines){
-            val columns = line.split(",")
-
-            val isValid = columns.filter { it.isNotEmpty() }.size >= 8
-
-            if(!isValid){
-                continue
-            }
-            val transaction = Transaction(null,
-                columns[0],
-                columns[1],
-                columns[2],
-                columns[3],
-                columns[4],
-                columns[5],
-                columns[6],
-                LocalDateTime.parse(columns[7])
-            )
-            transactions.add(transaction)
-        }
-        transactions.forEach{println("Banco Origem ${it.bankOrigin}\nValor ${it.value}\nData ${it.date}")}
-
-        return ResponseEntity.ok().build()
-    }
+    @GetMapping("/transactionslog", produces = ["application/json"])
+    fun transactions(): List<TransactionLog> = transactionLogRepository.findAll(Sort.by(Sort.Direction.ASC, "transactionDay"))
 }

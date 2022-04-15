@@ -7,9 +7,11 @@ import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
+import javax.persistence.Table
 
 
 @Entity
+@Table(name = "transactions")
 class Transaction (
     @Id
     @GeneratedValue
